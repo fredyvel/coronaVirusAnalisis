@@ -12,23 +12,27 @@ library(stringr)
 library(ggplot2)
 
 # Define UI for application that draws a histogram
-ui <- fluidPage(
-    #resultTotales<-data.frame(1,1,row.names = 'countriesAndTerritories'),
+ui <- fluidPage(#resultTotales<-data.frame(1,1,row.names = 'countriesAndTerritories'),
     # Application title
-    titlePanel("Old Faithful Geyser Data"),
-    actionButton("downloadData",label="Actualizar Data"),
-    #downloadButton("downloadData", "Cargar Datos"),
-    # Sidebar with a slider input for number of bins 
-    selectInput("Ciudades", "Variable:",
-              unique(totalCases$countriesAndTerritories), multiple = TRUE)
-    , 
-    mainPanel(
-        plotOutput('plotConfirmados')
-        
-    )
-    
-    
-)
+    sidebarLayout(
+        sidebarPanel(
+            titlePanel("Old Faithful Geyser Data"),
+            actionButton("downloadData", label = "Actualizar Data"),
+            #downloadButton("downloadData", "Cargar Datos"),
+            # Sidebar with a slider input for number of bins
+            selectInput(
+                "Ciudades",
+                "Variable:",
+                unique(totalCases$countriesAndTerritories),
+                multiple = TRUE
+            )
+        )
+        ,
+        mainPanel(
+            plotOutput('plotConfirmados'),
+            plotOutput('plotMuertes')
+                  )
+    ))
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
@@ -48,6 +52,25 @@ server <- function(input, output) {
             # View(countriData)
         }
         gg1<-ggplot(countriData,aes(x=dayPerInit,y=TotalCase))
+        gg1<-gg1+geom_line(aes(color=countriesAndTerritories,linetype=countriesAndTerritories))
+        gg1
+        
+    })
+    output$plotMuertes <- renderPlot({
+        
+        # generate bins based on input$bins from ui.R
+        dataset<-  totalCases
+        # dataset<-resultTotales
+        # cty<-'Italy'
+        # name<-unique(as.character(resultTotales$countriesAndTerritories))[1:3]
+        
+        countriData<-dataset[0,0]
+        for(cty in input$Ciudades){
+            dataAux<-dataset[which(dataset$countriesAndTerritories==cty),]
+            countriData<-rbind(countriData,dataAux)
+            # View(countriData)
+        }
+        gg1<-ggplot(countriData,aes(x=dayPerInit,y=totalDeath))
         gg1<-gg1+geom_line(aes(color=countriesAndTerritories,linetype=countriesAndTerritories))
         gg1
         
